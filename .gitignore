@@ -1,0 +1,14 @@
+# Node.js dependencies (Frontend & Backend)
+node_modules/
+package-lock.json
+
+# Build files
+dist/
+build/
+
+# Logs
+logs/
+
+# Environment Variables
+.env
+
