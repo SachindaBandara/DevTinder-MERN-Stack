@@ -28,7 +28,7 @@ app.get("/user", async (req, res) => {
       res.send("There is no any email");
     }
   } catch (err) {
-    res.status(400).send("Somthing went wrong", err.message);
+    res.status(400).send("Somthing went wrong" + err.message);
   }
 });
 
@@ -43,7 +43,7 @@ app.get("/one-user", async (req, res) => {
       res.send(oneUser);
     }
   } catch (err) {
-    res.res.status(400).send("Something went wrong", err.message);
+    res.res.status(400).send("Something went wrong" + err.message);
   }
 });
 
@@ -74,7 +74,7 @@ app.patch("/user", async (req, res) => {
     const userId = req.body.userId;
     const data = req.body;
 
-    await User.findByIdAndUpdate(userId, data); // option -> returnDocument= "after"
+    await User.findByIdAndUpdate(userId, data, {runValidators: true}); // option (object) -> returnDocument= "after"
     res.send("successfully updated");
   } catch (err) {
     res.status(400).send("Something Went Wrong!");
