@@ -1,6 +1,7 @@
 const express = require("express");
 const dbConnection = require("./config/dbConnection");
 const User = require("./models/User");
+const { signUpValidation } = require("./utils/validation");
 
 const app = express();
 
@@ -8,11 +9,16 @@ app.use(express.json()); // Convert JSON into JavaScript Object
 
 app.post("/signup", async (req, res) => {
   try {
+    // validation
+    signUpValidation(req);
+
+    // encryption
+
     const user = new User(req.body); // Get the Data from the request body
     await user.save();
     res.send("User created Successfully");
   } catch (err) {
-    res.status(400).send(err);
+    res.status(400).send("ERROR: " + err);
   }
 });
 
