@@ -2,7 +2,7 @@ const express = require("express");
 const dbConnection = require("./config/dbConnection");
 const User = require("./models/User");
 const { signUpValidation } = require("./utils/validation");
-
+const bcrypt = require("bcrypt");
 const app = express();
 
 app.use(express.json()); // Convert JSON into JavaScript Object
@@ -12,11 +12,51 @@ app.post("/signup", async (req, res) => {
     // validation
     signUpValidation(req);
 
-    // encryption
+    // encryption / can not decrypt
+    const { firstName, lastName, emailId, password } = req.body;
 
-    const user = new User(req.body); // Get the Data from the request body
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: hashPassword,
+    });
+
+    // Get the Data from the request body
     await user.save();
     res.send("User created Successfully");
+  } catch (err) {
+    res.status(400).send("ERROR: " + err);
+  }
+});
+
+//login API
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body; // Get the inserted data
+
+    // Check the type of emailId is valid or not
+    if (!validator.isEmail(emailId)) {
+      throw new Error("Invalid Creditials");
+    }
+
+    // Check whether user exsit in the database or not
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid Credintials");
+    }
+
+    // If the user exist in the database,
+    // get the user's password and compare hashed and entered password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (isPasswordValid) {
+      res.send("Login Successfully!");
+    } else {
+      throw new Error("Invalid Credintials");
+    }
   } catch (err) {
     res.status(400).send("ERROR: " + err);
   }
