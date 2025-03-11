@@ -52,4 +52,24 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.methods.getJWT = async function () {
+  const user = this;
+  // Create JWT token for each user
+  const token = await jwt.sign({ _id: user._id }, "Sachinda@19", {
+    expiresIn: "7d",
+  });
+  return token;
+};
+
+userSchema.methods.validatePassword = async function ( inputPassword ) {
+  const user = this;
+  const hashPassword = user.password;
+
+   // If the user exist in the database,
+    // get the user's password and compare hashed and entered password
+  const isPasswordValid = await bcrypt.compare(inputPassword, hashPassword);
+
+  return isPasswordValid;
+};
+
 module.exports = mongoose.model("User", userSchema);
