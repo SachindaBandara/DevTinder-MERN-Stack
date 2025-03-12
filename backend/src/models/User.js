@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
@@ -65,8 +67,7 @@ userSchema.methods.validatePassword = async function ( inputPassword ) {
   const user = this;
   const hashPassword = user.password;
 
-   // If the user exist in the database,
-    // get the user's password and compare hashed and entered password
+  // get the user's password and compare hashed and entered password
   const isPasswordValid = await bcrypt.compare(inputPassword, hashPassword);
 
   return isPasswordValid;
