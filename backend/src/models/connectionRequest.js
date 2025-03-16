@@ -4,10 +4,12 @@ const connectionRequestSchema = new mongoose.Schema(
   {
     fromUserId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Create relationship with User modle
       required: true,
     },
     toUserId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     status: {
@@ -33,4 +35,4 @@ connectionRequestSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("ConnectionRequest", ConnectionRequestSchema);
+module.exports = mongoose.model("ConnectionRequest", connectionRequestSchema);
