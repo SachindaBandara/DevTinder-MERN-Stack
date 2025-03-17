@@ -65,8 +65,6 @@ requestRouter.post(
 );
 
 // Accept or Reject recieved connection request
-const mongoose = require("mongoose");
-
 requestRouter.post(
   "/request/review/:status/:requestId",
   userAuth,
@@ -79,11 +77,6 @@ requestRouter.post(
       const allowedStatus = ["accepted", "rejected"];
       if (!allowedStatus.includes(status)) {
         return res.status(400).json({ message: "Status not allowed" });
-      }
-
-      // Validate requestId
-      if (!mongoose.Types.ObjectId.isValid(requestId)) {
-        return res.status(400).json({ message: "Invalid request ID" });
       }
 
       // Find connection request
