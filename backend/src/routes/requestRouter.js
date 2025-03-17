@@ -1,6 +1,7 @@
 const express = require("express");
 const { userAuth } = require("../middleware/auth");
 const ConnectionRequest = require("../models/connectionRequest");
+const User = require("../models/User");
 
 const requestRouter = express.Router();
 
@@ -26,7 +27,7 @@ requestRouter.post(
       const toUser = await User.findById(toUserId);
       if (!toUser) {
         return res.status(404).json({
-          message: "User not found!",
+          message: "User is not found!",
         });
       }
 
@@ -50,7 +51,7 @@ requestRouter.post(
         status,
       });
 
-      const requestData = await ConnectionRequest.save();
+      const requestData = await connectionRequest.save();
 
       res.json({
         message:
@@ -64,44 +65,64 @@ requestRouter.post(
 );
 
 // Accept or Reject recieved connection request
+const mongoose = require("mongoose");
+
 requestRouter.post(
-  "/request/send/:status/:requestId",
+  "/request/review/:status/:requestId",
   userAuth,
   async (req, res) => {
     try {
       const loggedInUser = req.user;
       const { status, requestId } = req.params;
 
+      // Validate status
       const allowedStatus = ["accepted", "rejected"];
       if (!allowedStatus.includes(status)) {
-        return res.status(400).json({
-          message: "Status not allowed",
-        });
+        return res.status(400).json({ message: "Status not allowed" });
       }
 
+      // Validate requestId
+      if (!mongoose.Types.ObjectId.isValid(requestId)) {
+        return res.status(400).json({ message: "Invalid request ID" });
+      }
+
+      // Find connection request
       const connectionRequest = await ConnectionRequest.findOne({
         _id: requestId,
-        toUserId: loggedInUser._id,
-        status: "interested",
+        toUserId: loggedInUser._id, // Ensure the logged-in user is the recipient
+        status: "interested", 
       });
 
+
       if (!connectionRequest) {
-        return res.status(404).json({
-          message: "Connection request not found!",
-        });
+        return res
+          .status(404)
+          .json({
+            message: "Connection request not found or already processed!",
+          });
       }
 
-      connectionRequest.status = status;
+      // Ensure the logged-in user is authorized
+      if (
+        connectionRequest.toUserId.toString() !== loggedInUser._id.toString()
+      ) {
+        return res
+          .status(403)
+          .json({ message: "You are not authorized to update this request." });
+      }
 
+      // Update status
+      connectionRequest.status = status;
       const data = await connectionRequest.save();
 
       res.json({
-        message: "Connection Request " + status,
+        message: `Connection Request ${status}`,
         data,
       });
-      
     } catch (err) {
-      res.status(400).send("ERROR: " + err.message);
+      res
+        .status(500)
+        .json({ message: "Internal Server Error", error: err.message });
     }
   }
 );
